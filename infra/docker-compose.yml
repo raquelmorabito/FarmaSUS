@@ -1,0 +1,90 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: farma-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: farma
+      RABBITMQ_DEFAULT_PASS: farma
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  postgres-auth:
+    image: postgres:16
+    container_name: farma-postgres-auth
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: authdb
+      POSTGRES_USER: farma
+      POSTGRES_PASSWORD: farma
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U farma -d authdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  postgres-patient:
+    image: postgres:16
+    container_name: farma-postgres-patient
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_DB: patientdb
+      POSTGRES_USER: farma
+      POSTGRES_PASSWORD: farma
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U farma -d patientdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  postgres-medication:
+    image: postgres:16
+    container_name: farma-postgres-medication
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_DB: medicationdb
+      POSTGRES_USER: farma
+      POSTGRES_PASSWORD: farma
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U farma -d medicationdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  postgres-safety:
+    image: postgres:16
+    container_name: farma-postgres-safety
+    ports:
+      - "5436:5432"
+    environment:
+      POSTGRES_DB: safetydb
+      POSTGRES_USER: farma
+      POSTGRES_PASSWORD: farma
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U farma -d safetydb"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  postgres-adherence:
+    image: postgres:16
+    container_name: farma-postgres-adherence
+    ports:
+      - "5437:5432"
+    environment:
+      POSTGRES_DB: adherencedb
+      POSTGRES_USER: farma
+      POSTGRES_PASSWORD: farma
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U farma -d adherencedb"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
