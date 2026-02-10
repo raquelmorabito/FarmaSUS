@@ -3,8 +3,8 @@ services:
     image: rabbitmq:3-management
     container_name: farma-rabbitmq
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "5673:5672"
+      - "15673:15672"
     environment:
       RABBITMQ_DEFAULT_USER: farma
       RABBITMQ_DEFAULT_PASS: farma
@@ -13,36 +13,40 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+    networks:
+      - farma-net
 
-  postgres-auth:
-    image: postgres:16
-    container_name: farma-postgres-auth
+  medication-service:
+    build:
+      context: ../services/medication-service
+    container_name: farma-medication-service
     ports:
-      - "5433:5432"
+      - "8080:8080"
     environment:
-      POSTGRES_DB: authdb
-      POSTGRES_USER: farma
-      POSTGRES_PASSWORD: farma
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U farma -d authdb"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      postgres-medication:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - farma-net
 
-  postgres-patient:
-    image: postgres:16
-    container_name: farma-postgres-patient
+  safety-service:
+    build:
+      context: ../services/safety-service
+    container_name: farma-safety-service
     ports:
-      - "5434:5432"
+      - "8081:8081"
     environment:
-      POSTGRES_DB: patientdb
-      POSTGRES_USER: farma
-      POSTGRES_PASSWORD: farma
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U farma -d patientdb"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      postgres-safety:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - farma-net
 
   postgres-medication:
     image: postgres:16
@@ -53,11 +57,15 @@ services:
       POSTGRES_DB: medicationdb
       POSTGRES_USER: farma
       POSTGRES_PASSWORD: farma
+    volumes:
+      - farma-medication-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U farma -d medicationdb"]
       interval: 10s
       timeout: 5s
       retries: 10
+    networks:
+      - farma-net
 
   postgres-safety:
     image: postgres:16
@@ -68,23 +76,20 @@ services:
       POSTGRES_DB: safetydb
       POSTGRES_USER: farma
       POSTGRES_PASSWORD: farma
+    volumes:
+      - farma-safety-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U farma -d safetydb"]
       interval: 10s
       timeout: 5s
       retries: 10
+    networks:
+      - farma-net
 
-  postgres-adherence:
-    image: postgres:16
-    container_name: farma-postgres-adherence
-    ports:
-      - "5437:5432"
-    environment:
-      POSTGRES_DB: adherencedb
-      POSTGRES_USER: farma
-      POSTGRES_PASSWORD: farma
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U farma -d adherencedb"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+networks:
+  farma-net:
+    name: farma-net
+
+volumes:
+  farma-medication-data:
+  farma-safety-data:
