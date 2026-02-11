@@ -1,8 +1,8 @@
 spring:
   application:
-    name: medication-service
+    name: patient-service
   datasource:
-    url: jdbc:postgresql://postgres-medication:5432/medicationdb
+    url: jdbc:postgresql://postgres-patient:5432/patientdb
     username: farma
     password: farma
   jpa:
@@ -25,7 +25,7 @@ springdoc:
     path: /v3/api-docs
 
 server:
-  port: 8080
+  port: 8082
   servlet:
     encoding:
       charset: UTF-8

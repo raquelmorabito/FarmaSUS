@@ -2,7 +2,7 @@ spring:
   application:
     name: medication-service
   datasource:
-    url: jdbc:postgresql://postgres-medication:5432/medicationdb
+    url: jdbc:postgresql://localhost:5435/medicationdb
     username: farma
     password: farma
   jpa:
@@ -13,8 +13,8 @@ spring:
         jdbc:
           time_zone: America/Sao_Paulo
   rabbitmq:
-    host: rabbitmq
-    port: 5672
+    host: localhost
+    port: 5673
     username: farma
     password: farma
 
@@ -26,12 +26,3 @@ springdoc:
 
 server:
   port: 8080
-  servlet:
-    encoding:
-      charset: UTF-8
-      enabled: true
-      force: true
-
-app:
-  jwt:
-    secret: "alterar-este-segredo-para-producao-uma-chave-longa"

@@ -1,0 +1,20 @@
+package br.gov.farmasus.medication.dto;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
+
+public record PrescricaoResponse(
+    Long prescricaoId,
+    Long pacienteId,
+    String nomeMedicamento,
+    String dosagem,
+    Integer frequenciaDiaria,
+    @JsonFormat(pattern = "HH:mm")
+    List<LocalTime> horarios,
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    LocalDate inicio,
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    LocalDate fim
+) {}

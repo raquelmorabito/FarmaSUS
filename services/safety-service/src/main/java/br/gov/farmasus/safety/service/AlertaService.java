@@ -14,7 +14,6 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -43,7 +42,7 @@ public class AlertaService {
 
   @Transactional
   public void processarPrescricao(PrescricaoCriadaEvent event) {
-    if (alertaRepository.existsByEventId(event.eventId())) {
+    if (alertaRepository.existsByPrescricaoId(event.prescricaoId())) {
       return;
     }
     PrescricaoPaciente nova = new PrescricaoPaciente();
@@ -73,7 +72,7 @@ public class AlertaService {
       AlertaInteracao alerta = new AlertaInteracao();
       alerta.setEventId(event.eventId());
       alerta.setCorrelationId(event.correlationId());
-      alerta.setCriadoEm(OffsetDateTime.now(ZONA_BR));
+      alerta.setCriadoEm(event.criadoEm() != null ? event.criadoEm() : OffsetDateTime.now(ZONA_BR));
       alerta.setPacienteId(event.pacienteId());
       alerta.setPrescricaoId(event.prescricaoId());
       alerta.setSeveridade(interacao.getSeveridade());
@@ -84,12 +83,12 @@ public class AlertaService {
       try {
         salvo = alertaRepository.save(alerta);
       } catch (DataIntegrityViolationException e) {
-        return;
+        continue;
       }
 
       AlertaInteracaoCriadoEvent alertaEvent = new AlertaInteracaoCriadoEvent(
-          UUID.randomUUID(),
-          event.correlationId(),
+          salvo.getEventId(),
+          salvo.getCorrelationId(),
           salvo.getCriadoEm(),
           salvo.getId(),
           salvo.getPacienteId(),

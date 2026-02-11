@@ -1,0 +1,19 @@
+package br.gov.farmasus.safety.dto;
+
+import br.gov.farmasus.safety.domain.Severidade;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import java.time.OffsetDateTime;
+import java.util.UUID;
+
+public record AlertaResponse(
+    Long alertaId,
+    UUID eventId,
+    UUID correlationId,
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssXXX")
+    OffsetDateTime criadoEm,
+    Long pacienteId,
+    Long prescricaoId,
+    Severidade severidade,
+    String mensagem,
+    String recomendacao
+) {}

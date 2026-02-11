@@ -1,8 +1,8 @@
 spring:
   application:
-    name: medication-service
+    name: adherence-service
   datasource:
-    url: jdbc:postgresql://postgres-medication:5432/medicationdb
+    url: jdbc:postgresql://postgres-adherence:5432/adherencedb
     username: farma
     password: farma
   jpa:
@@ -17,6 +17,8 @@ spring:
     port: 5672
     username: farma
     password: farma
+  jackson:
+    time-zone: America/Sao_Paulo
 
 springdoc:
   swagger-ui:
@@ -25,13 +27,7 @@ springdoc:
     path: /v3/api-docs
 
 server:
-  port: 8080
-  servlet:
-    encoding:
-      charset: UTF-8
-      enabled: true
-      force: true
+  port: 8084
 
-app:
-  jwt:
-    secret: "alterar-este-segredo-para-producao-uma-chave-longa"
+jwt:
+  secret: ${JWT_SECRET:alterar-este-segredo-para-producao-uma-chave-longa}

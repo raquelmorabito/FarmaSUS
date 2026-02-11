@@ -1,0 +1,21 @@
+package br.gov.farmasus.safety.listener;
+
+import br.gov.farmasus.safety.config.RabbitConfig;
+import br.gov.farmasus.safety.dto.PrescricaoCriadaEvent;
+import br.gov.farmasus.safety.service.AlertaService;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.stereotype.Component;
+
+@Component
+public class PrescricaoListener {
+  private final AlertaService alertaService;
+
+  public PrescricaoListener(AlertaService alertaService) {
+    this.alertaService = alertaService;
+  }
+
+  @RabbitListener(queues = RabbitConfig.MEDICATION_CREATED_QUEUE)
+  public void consumirPrescricaoCriada(PrescricaoCriadaEvent event) {
+    alertaService.processarPrescricao(event);
+  }
+}

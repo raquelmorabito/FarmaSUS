@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: auth-service
+  jackson:
+    time-zone: America/Sao_Paulo
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+server:
+  port: 8083
+
+jwt:
+  secret: "alterar-este-segredo-para-producao-uma-chave-longa"
+  expiracao-minutos: 120
