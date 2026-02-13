@@ -189,5 +189,15 @@ OpenAPI JSON:
 
 ## CI
 Pipeline em `.github/workflows/ci-jwt.yml`:
-- Etapa 1: valida integracao JWT no `medication-service`.
-- Etapa 2: executa stack Docker + E2E para validar fluxo ponta a ponta.
+- Etapa 1: matrix `verify` para os 5 microservicos (`mvn verify` com cobertura JaCoCo minima).
+- Etapa 2: gate de analise estatica com SpotBugs (threshold alto para falhas criticas).
+- Etapa 3: validacao E2E completa com Docker Compose via `validate_all.sh`.
+- Etapa 4: SCA em pull requests com `dependency-review-action`.
+
+## Observabilidade
+Endpoints por servico:
+- `http://localhost:8080/actuator/health` e `http://localhost:8080/actuator/prometheus`
+- `http://localhost:8081/actuator/health` e `http://localhost:8081/actuator/prometheus`
+- `http://localhost:8082/actuator/health` e `http://localhost:8082/actuator/prometheus`
+- `http://localhost:8083/actuator/health` e `http://localhost:8083/actuator/prometheus`
+- `http://localhost:8084/actuator/health` e `http://localhost:8084/actuator/prometheus`

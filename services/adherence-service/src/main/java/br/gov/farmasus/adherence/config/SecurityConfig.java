@@ -38,6 +38,7 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
           .requestMatchers(
               "/actuator/health",
               "/actuator/health/**",
+              "/actuator/prometheus",
               "/v3/api-docs",
               "/v3/api-docs/**",
               "/swagger-ui.html",

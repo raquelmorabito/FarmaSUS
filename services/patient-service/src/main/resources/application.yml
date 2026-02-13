@@ -52,3 +52,45 @@ http:
   client:
     connect-timeout-ms: ${HTTP_CLIENT_CONNECT_TIMEOUT_MS:2000}
     read-timeout-ms: ${HTTP_CLIENT_READ_TIMEOUT_MS:5000}
+
+resilience4j:
+  retry:
+    instances:
+      medicationService:
+        max-attempts: ${RESILIENCE_MEDICATION_RETRY_MAX_ATTEMPTS:3}
+        wait-duration: ${RESILIENCE_MEDICATION_RETRY_WAIT:300ms}
+      adherenceService:
+        max-attempts: ${RESILIENCE_ADHERENCE_RETRY_MAX_ATTEMPTS:3}
+        wait-duration: ${RESILIENCE_ADHERENCE_RETRY_WAIT:300ms}
+  circuitbreaker:
+    instances:
+      medicationService:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: ${RESILIENCE_MEDICATION_CB_WINDOW:10}
+        minimum-number-of-calls: ${RESILIENCE_MEDICATION_CB_MIN_CALLS:5}
+        failure-rate-threshold: ${RESILIENCE_MEDICATION_CB_FAILURE_RATE:50}
+        wait-duration-in-open-state: ${RESILIENCE_MEDICATION_CB_OPEN_WAIT:10s}
+      adherenceService:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: ${RESILIENCE_ADHERENCE_CB_WINDOW:10}
+        minimum-number-of-calls: ${RESILIENCE_ADHERENCE_CB_MIN_CALLS:5}
+        failure-rate-threshold: ${RESILIENCE_ADHERENCE_CB_FAILURE_RATE:50}
+        wait-duration-in-open-state: ${RESILIENCE_ADHERENCE_CB_OPEN_WAIT:10s}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}

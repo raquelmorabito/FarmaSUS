@@ -53,3 +53,36 @@ http:
   client:
     connect-timeout-ms: ${HTTP_CLIENT_CONNECT_TIMEOUT_MS:2000}
     read-timeout-ms: ${HTTP_CLIENT_READ_TIMEOUT_MS:5000}
+
+resilience4j:
+  retry:
+    instances:
+      safetyService:
+        max-attempts: ${RESILIENCE_SAFETY_RETRY_MAX_ATTEMPTS:3}
+        wait-duration: ${RESILIENCE_SAFETY_RETRY_WAIT:300ms}
+  circuitbreaker:
+    instances:
+      safetyService:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: ${RESILIENCE_SAFETY_CB_WINDOW:10}
+        minimum-number-of-calls: ${RESILIENCE_SAFETY_CB_MIN_CALLS:5}
+        failure-rate-threshold: ${RESILIENCE_SAFETY_CB_FAILURE_RATE:50}
+        wait-duration-in-open-state: ${RESILIENCE_SAFETY_CB_OPEN_WAIT:10s}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}

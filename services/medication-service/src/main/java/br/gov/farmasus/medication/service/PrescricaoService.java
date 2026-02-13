@@ -1,6 +1,5 @@
 package br.gov.farmasus.medication.service;
 
-import br.gov.farmasus.medication.config.RabbitConfig;
 import br.gov.farmasus.medication.config.RabbitMessagingProperties;
 import br.gov.farmasus.medication.domain.Prescricao;
 import br.gov.farmasus.medication.dto.PrescricaoCriadaEvent;
@@ -13,15 +12,10 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 public class PrescricaoService {
@@ -29,21 +23,18 @@ public class PrescricaoService {
 
   private final PrescricaoRepository prescricaoRepository;
   private final RabbitTemplate rabbitTemplate;
-  private final RestTemplate restTemplate;
-  private final String safetyServiceUrl;
+  private final SafetyServiceClient safetyServiceClient;
   private final RabbitMessagingProperties rabbitMessagingProperties;
 
   public PrescricaoService(
       PrescricaoRepository prescricaoRepository,
       RabbitTemplate rabbitTemplate,
-      RestTemplate restTemplate,
       RabbitMessagingProperties rabbitMessagingProperties,
-      @Value("${services.safety.url}") String safetyServiceUrl) {
+      SafetyServiceClient safetyServiceClient) {
     this.prescricaoRepository = prescricaoRepository;
     this.rabbitTemplate = rabbitTemplate;
-    this.restTemplate = restTemplate;
     this.rabbitMessagingProperties = rabbitMessagingProperties;
-    this.safetyServiceUrl = safetyServiceUrl;
+    this.safetyServiceClient = safetyServiceClient;
   }
 
   @Transactional
@@ -107,25 +98,8 @@ public class PrescricaoService {
   }
 
   private void validarInteracaoBloqueante(Long pacienteId, PrescricaoRequest request) {
-    String url = UriComponentsBuilder
-        .fromHttpUrl(safetyServiceUrl + "/alertas/paciente/verificacao-interacao")
-        .queryParam("pacienteId", pacienteId)
-        .queryParam("medicamento", request.nomeMedicamento())
-        .toUriString();
-
-    VerificacaoInteracaoResponse verificacao;
-    try {
-      ResponseEntity<VerificacaoInteracaoResponse> response = restTemplate.getForEntity(
-          url,
-          VerificacaoInteracaoResponse.class
-      );
-      verificacao = response.getBody();
-    } catch (RestClientException ex) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_GATEWAY,
-          "Falha ao validar interacao medicamentosa no safety-service"
-      );
-    }
+    VerificacaoInteracaoResponse verificacao =
+        safetyServiceClient.verificarInteracao(pacienteId, request.nomeMedicamento());
 
     if (verificacao == null || !verificacao.possuiRisco()) {
       return;
