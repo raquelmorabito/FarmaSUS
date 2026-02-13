@@ -36,7 +36,7 @@ server:
       force: true
 
 jwt:
-  secret: ${JWT_SECRET:LEfkgCqlkkpypMzMpM6MJWbBfAnpg8lHLGNkjHb6ZOSHUGoL/L+RCID13x2Z7QjX}
+  secret: ${JWT_SECRET}
 
 services:
   medication:

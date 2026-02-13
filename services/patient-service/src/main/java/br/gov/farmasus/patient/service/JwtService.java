@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 public class JwtService {
   private final SecretKey secretKey;
 
-  public JwtService(@Value("${app.jwt.secret:${jwt.secret}}") String secret) {
+  public JwtService(@Value("${jwt.secret}") String secret) {
     this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
   }
 

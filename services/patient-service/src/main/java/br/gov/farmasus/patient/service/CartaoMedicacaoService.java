@@ -32,10 +32,11 @@ public class CartaoMedicacaoService {
   public CartaoMedicacaoService(
       AlertaPacienteService alertaPacienteService,
       PerfilClinicoPacienteService perfilClinicoPacienteService,
+      RestTemplate restTemplate,
       @Value("${services.medication.url:http://localhost:8080}") String medicationServiceUrl) {
     this.alertaPacienteService = alertaPacienteService;
     this.perfilClinicoPacienteService = perfilClinicoPacienteService;
-    this.restTemplate = new RestTemplate();
+    this.restTemplate = restTemplate;
     this.medicationServiceUrl = medicationServiceUrl;
   }
 

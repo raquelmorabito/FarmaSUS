@@ -35,10 +35,11 @@ public class PrescricaoService {
   public PrescricaoService(
       PrescricaoRepository prescricaoRepository,
       RabbitTemplate rabbitTemplate,
+      RestTemplate restTemplate,
       @Value("${services.safety.url:http://localhost:8081}") String safetyServiceUrl) {
     this.prescricaoRepository = prescricaoRepository;
     this.rabbitTemplate = rabbitTemplate;
-    this.restTemplate = new RestTemplate();
+    this.restTemplate = restTemplate;
     this.safetyServiceUrl = safetyServiceUrl;
   }
 
