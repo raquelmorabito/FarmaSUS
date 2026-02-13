@@ -1,6 +1,9 @@
 spring:
   application:
     name: medication-service
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
   datasource:
     url: jdbc:postgresql://postgres-medication:5432/medicationdb
     username: farma
@@ -32,6 +35,16 @@ server:
       enabled: true
       force: true
 
-app:
-  jwt:
-    secret: "alterar-este-segredo-para-producao-uma-chave-longa"
+jwt:
+  secret: ${JWT_SECRET:alterar-este-segredo-para-producao-uma-chave-longa}
+
+jobs:
+  receita-perto-vencer:
+    cron: ${RECEITA_PERTO_VENCER_CRON:0 0 8 * * *}
+    zone: ${RECEITA_PERTO_VENCER_ZONE:America/Sao_Paulo}
+    dias-antecedencia: ${RECEITA_PERTO_VENCER_DIAS:7}
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    io.jsonwebtoken: DEBUG

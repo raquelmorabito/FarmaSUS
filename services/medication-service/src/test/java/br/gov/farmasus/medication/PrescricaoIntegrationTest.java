@@ -9,23 +9,24 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.List;
-import java.util.Properties;
 import org.awaitility.Awaitility;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.QueueBuilder;
+import org.springframework.amqp.core.QueueInformation;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -36,6 +37,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
 @Import(PrescricaoIntegrationTest.TestRabbitConfig.class)
+@SuppressWarnings("resource")
 class PrescricaoIntegrationTest {
   private static final ZoneId ZONA_BR = ZoneId.of("America/Sao_Paulo");
   private static final String TEST_QUEUE = "test.medication.created";
@@ -47,25 +49,38 @@ class PrescricaoIntegrationTest {
       .withPassword("farma");
 
   @Container
-  private static final RabbitMQContainer RABBIT = new RabbitMQContainer("rabbitmq:3.13-management-alpine")
-      .withUser("farma", "farma");
+  private static final RabbitMQContainer RABBIT = new RabbitMQContainer("rabbitmq:3.13-management-alpine");
 
   @DynamicPropertySource
   static void dynamicProperties(DynamicPropertyRegistry registry) {
-    registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
-    registry.add("spring.datasource.username", POSTGRES::getUsername);
-    registry.add("spring.datasource.password", POSTGRES::getPassword);
-    registry.add("spring.rabbitmq.host", RABBIT::getHost);
-    registry.add("spring.rabbitmq.port", RABBIT::getAmqpPort);
-    registry.add("spring.rabbitmq.username", () -> "farma");
-    registry.add("spring.rabbitmq.password", () -> "farma");
+    String jdbcUrl = POSTGRES.getJdbcUrl();
+    String dbUser = POSTGRES.getUsername();
+    String dbPass = POSTGRES.getPassword();
+
+    String rabbitHost = RABBIT.getHost();
+    Integer rabbitPort = RABBIT.getAmqpPort();
+
+    registry.add("spring.datasource.url", () -> jdbcUrl);
+    registry.add("spring.datasource.username", () -> dbUser);
+    registry.add("spring.datasource.password", () -> dbPass);
+    registry.add("spring.rabbitmq.host", () -> rabbitHost);
+    registry.add("spring.rabbitmq.port", () -> rabbitPort);
+    registry.add("spring.rabbitmq.username", RABBIT::getAdminUsername);
+    registry.add("spring.rabbitmq.password", RABBIT::getAdminPassword);
   }
 
   @Autowired
-  private TestRestTemplate restTemplate;
+  private org.springframework.boot.test.web.client.TestRestTemplate restTemplate;
 
   @Autowired
   private RabbitAdmin rabbitAdmin;
+
+  @BeforeEach
+  void configurarHttpSemStreaming() {
+    SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+    requestFactory.setOutputStreaming(false);
+    restTemplate.getRestTemplate().setRequestFactory(requestFactory);
+  }
 
   @Test
   void deveCriarPrescricoesEPublicarEventos() {
@@ -108,11 +123,9 @@ class PrescricaoIntegrationTest {
     Awaitility.await()
         .atMost(Duration.ofSeconds(10))
         .untilAsserted(() -> {
-          Properties props = rabbitAdmin.getQueueProperties(TEST_QUEUE);
-          assertThat(props).isNotNull();
-          Integer count = (Integer) props.get(RabbitAdmin.QUEUE_MESSAGE_COUNT);
-          assertThat(count).isNotNull();
-          assertThat(count).isGreaterThanOrEqualTo(2);
+          QueueInformation info = rabbitAdmin.getQueueInfo(TEST_QUEUE);
+          assertThat(info).isNotNull();
+          assertThat(info.getMessageCount()).isGreaterThanOrEqualTo(2);
         });
   }
 

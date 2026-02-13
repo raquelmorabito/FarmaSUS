@@ -1,6 +1,9 @@
 spring:
   application:
     name: safety-service
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
   datasource:
     url: jdbc:postgresql://localhost:5436/safetydb
     username: farma
@@ -26,3 +29,6 @@ springdoc:
 
 server:
   port: 8081
+
+jwt:
+  secret: ${JWT_SECRET:alterar-este-segredo-para-producao-uma-chave-longa}

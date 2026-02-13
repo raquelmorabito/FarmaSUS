@@ -1,6 +1,9 @@
 spring:
   application:
     name: adherence-service
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
   datasource:
     url: jdbc:postgresql://postgres-adherence:5432/adherencedb
     username: farma

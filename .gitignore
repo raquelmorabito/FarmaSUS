@@ -6,4 +6,5 @@
 **/*.iml
 **/.vscode/
 .DS_Store
+infra/.env
 .env

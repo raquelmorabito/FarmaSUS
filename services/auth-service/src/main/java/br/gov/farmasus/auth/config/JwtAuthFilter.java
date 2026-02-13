@@ -13,11 +13,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
+  private static final String BEARER_PREFIX = "Bearer ";
+
   private final JwtService jwtService;
 
   public JwtAuthFilter(JwtService jwtService) {
@@ -27,24 +30,37 @@ public class JwtAuthFilter extends OncePerRequestFilter {
   @Override
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
-    String header = request.getHeader(HttpHeaders.AUTHORIZATION);
-    if (header != null && header.startsWith("Bearer ")) {
-      String token = header.substring(7);
+    String token = extrairToken(request.getHeader(HttpHeaders.AUTHORIZATION));
+    if (token != null && SecurityContextHolder.getContext().getAuthentication() == null) {
       try {
         Claims claims = jwtService.validarToken(token);
         String login = claims.getSubject();
-        String tipoUsuario = String.valueOf(claims.get("tipoUsuario"));
-        UsuarioPrincipal principal = new UsuarioPrincipal(login, tipoUsuario);
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-            principal,
-            null,
-            List.of(new SimpleGrantedAuthority("ROLE_" + tipoUsuario))
-        );
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String tipoUsuario = claims.get("tipoUsuario", String.class);
+        if (login != null && tipoUsuario != null) {
+          UsuarioPrincipal principal = new UsuarioPrincipal(login, tipoUsuario);
+          UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+              principal,
+              null,
+              List.of(new SimpleGrantedAuthority("ROLE_" + tipoUsuario))
+          );
+          authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+          SecurityContextHolder.getContext().setAuthentication(authentication);
+        }
       } catch (Exception ex) {
         SecurityContextHolder.clearContext();
       }
     }
     filterChain.doFilter(request, response);
+  }
+
+  private String extrairToken(String authorizationHeader) {
+    if (authorizationHeader == null || authorizationHeader.isBlank()) {
+      return null;
+    }
+    if (!authorizationHeader.regionMatches(true, 0, BEARER_PREFIX, 0, BEARER_PREFIX.length())) {
+      return null;
+    }
+    String token = authorizationHeader.substring(BEARER_PREFIX.length()).trim();
+    return token.isEmpty() ? null : token;
   }
 }

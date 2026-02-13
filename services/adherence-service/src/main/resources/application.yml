@@ -1,6 +1,9 @@
 spring:
   application:
     name: adherence-service
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
   datasource:
     url: jdbc:postgresql://localhost:5439/adherencedb
     username: farma
@@ -30,4 +33,4 @@ server:
   port: 8084
 
 jwt:
-  secret: "alterar-este-segredo-para-producao-uma-chave-longa"
+  secret: ${JWT_SECRET:alterar-este-segredo-para-producao-uma-chave-longa}

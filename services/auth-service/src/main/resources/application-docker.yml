@@ -1,6 +1,9 @@
 spring:
   application:
     name: auth-service
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
   jackson:
     time-zone: America/Sao_Paulo
 
@@ -14,5 +17,4 @@ server:
   port: 8083
 
 jwt:
-  secret: "alterar-este-segredo-para-producao-uma-chave-longa"
-  expiracao-minutos: 120
+  secret: ${JWT_SECRET:alterar-este-segredo-para-producao-uma-chave-longa}
