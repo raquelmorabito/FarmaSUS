@@ -36,8 +36,10 @@ server:
       force: true
 
 jwt:
-  secret: ${JWT_SECRET:alterar-este-segredo-para-producao-uma-chave-longa}
+  secret: ${JWT_SECRET:LEfkgCqlkkpypMzMpM6MJWbBfAnpg8lHLGNkjHb6ZOSHUGoL/L+RCID13x2Z7QjX}
 
 services:
   medication:
     url: ${MEDICATION_SERVICE_URL:http://medication-service:8080}
+  adherence:
+    url: ${ADHERENCE_SERVICE_URL:http://adherence-service:8084}

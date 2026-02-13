@@ -96,6 +96,8 @@ class PrescricaoIntegrationTest {
         "5mg",
         1,
         List.of(LocalTime.of(8, 0)),
+        "Tomar apos cafe da manha.",
+        null,
         inicio,
         fim
     );
@@ -105,6 +107,8 @@ class PrescricaoIntegrationTest {
         "400mg",
         2,
         List.of(LocalTime.of(10, 0), LocalTime.of(22, 0)),
+        "Tomar apos refeicoes.",
+        null,
         inicio,
         fim
     );

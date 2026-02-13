@@ -5,6 +5,7 @@ import br.gov.farmasus.adherence.domain.Dose;
 import br.gov.farmasus.adherence.domain.RegistroDose;
 import br.gov.farmasus.adherence.dto.DoseRegistradaEvent;
 import br.gov.farmasus.adherence.dto.DoseResponse;
+import br.gov.farmasus.adherence.dto.RegistroDoseHistoricoResponse;
 import br.gov.farmasus.adherence.dto.RegistroDoseRequest;
 import br.gov.farmasus.adherence.repository.DoseRepository;
 import br.gov.farmasus.adherence.repository.RegistroDoseRepository;
@@ -55,11 +56,30 @@ public class DoseService {
     registro.setDose(dose);
     registro.setStatus(request.status());
     registro.setRegistradoEm(request.registradoEm());
+    registro.setComentario(request.comentario() == null ? null : request.comentario().trim());
     registroDoseRepository.save(registro);
 
     publicarEventoRegistro(dose, request);
 
     return toResponse(dose);
+  }
+
+  @Transactional(readOnly = true)
+  public List<RegistroDoseHistoricoResponse> listarHistoricoTomadas(Long pacienteId) {
+    return registroDoseRepository.findAllByPacienteIdOrderByRegistradoEmDesc(pacienteId)
+        .stream()
+        .map(registro -> new RegistroDoseHistoricoResponse(
+            registro.getId(),
+            registro.getDose().getId(),
+            registro.getDose().getPrescricaoId(),
+            registro.getDose().getNomeMedicamento(),
+            registro.getStatus().name(),
+            registro.getDose().getData(),
+            registro.getDose().getHorario(),
+            registro.getRegistradoEm(),
+            registro.getComentario()
+        ))
+        .toList();
   }
 
   private DoseResponse toResponse(Dose dose) {

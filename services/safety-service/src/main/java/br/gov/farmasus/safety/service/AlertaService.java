@@ -7,6 +7,7 @@ import br.gov.farmasus.safety.domain.PrescricaoPaciente;
 import br.gov.farmasus.safety.dto.AlertaInteracaoCriadoEvent;
 import br.gov.farmasus.safety.dto.AlertaResponse;
 import br.gov.farmasus.safety.dto.PrescricaoCriadaEvent;
+import br.gov.farmasus.safety.dto.VerificacaoInteracaoResponse;
 import br.gov.farmasus.safety.repository.AlertaInteracaoRepository;
 import br.gov.farmasus.safety.repository.PrescricaoPacienteRepository;
 import java.time.LocalDate;
@@ -122,5 +123,55 @@ public class AlertaService {
         alerta.getMensagem(),
         alerta.getRecomendacao()
     );
+  }
+
+  @Transactional(readOnly = true)
+  public VerificacaoInteracaoResponse verificarInteracaoBloqueante(Long pacienteId, String nomeMedicamento) {
+    LocalDate hoje = LocalDate.now(ZONA_BR);
+    List<PrescricaoPaciente> prescricoesAtivas = prescricaoRepository
+        .findAllByPacienteIdAndInicioLessThanEqualAndFimGreaterThanEqual(pacienteId, hoje, hoje);
+
+    InteracaoMedicamento melhorInteracao = null;
+    String medicamentoConflitante = null;
+    int melhorRank = Integer.MAX_VALUE;
+
+    for (PrescricaoPaciente prescricaoAtiva : prescricoesAtivas) {
+      Optional<InteracaoMedicamento> interacaoOpt = interacaoService.buscarInteracao(
+          nomeMedicamento,
+          prescricaoAtiva.getNomeMedicamento()
+      );
+      if (interacaoOpt.isEmpty()) {
+        continue;
+      }
+
+      InteracaoMedicamento interacao = interacaoOpt.get();
+      int rank = rankSeveridade(interacao.getSeveridade());
+      if (rank < melhorRank) {
+        melhorRank = rank;
+        melhorInteracao = interacao;
+        medicamentoConflitante = prescricaoAtiva.getNomeMedicamento();
+      }
+    }
+
+    if (melhorInteracao == null) {
+      return new VerificacaoInteracaoResponse(false, null, null, null, null);
+    }
+
+    return new VerificacaoInteracaoResponse(
+        true,
+        melhorInteracao.getSeveridade(),
+        melhorInteracao.getMensagem(),
+        melhorInteracao.getRecomendacao(),
+        medicamentoConflitante
+    );
+  }
+
+  private int rankSeveridade(br.gov.farmasus.safety.domain.Severidade severidade) {
+    return switch (severidade) {
+      case CONTRAINDICADA -> 0;
+      case ALTA -> 1;
+      case MODERADA -> 2;
+      case BAIXA -> 3;
+    };
   }
 }

@@ -13,6 +13,7 @@ public record PrescricaoResponse(
     Integer frequenciaDiaria,
     @JsonFormat(pattern = "HH:mm")
     List<LocalTime> horarios,
+    String orientacoesUso,
     @JsonFormat(pattern = "yyyy-MM-dd")
     LocalDate inicio,
     @JsonFormat(pattern = "yyyy-MM-dd")

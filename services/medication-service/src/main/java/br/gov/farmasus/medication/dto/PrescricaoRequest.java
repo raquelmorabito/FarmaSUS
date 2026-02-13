@@ -25,6 +25,11 @@ public record PrescricaoRequest(
     @JsonFormat(pattern = "HH:mm")
     List<LocalTime> horarios,
 
+    @Size(max = 1000, message = "orientacoesUso deve ter no maximo 1000 caracteres")
+    String orientacoesUso,
+
+    Boolean confirmarRiscoInteracao,
+
     @NotNull(message = "inicio e obrigatorio")
     @JsonFormat(pattern = "yyyy-MM-dd")
     LocalDate inicio,

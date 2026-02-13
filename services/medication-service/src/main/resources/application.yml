@@ -31,10 +31,14 @@ server:
   port: 8080
 
 jwt:
-  secret: ${JWT_SECRET:alterar-este-segredo-para-producao-uma-chave-longa}
+  secret: ${JWT_SECRET:LEfkgCqlkkpypMzMpM6MJWbBfAnpg8lHLGNkjHb6ZOSHUGoL/L+RCID13x2Z7QjX}
 
 jobs:
   receita-perto-vencer:
     cron: ${RECEITA_PERTO_VENCER_CRON:0 0 8 * * *}
     zone: ${RECEITA_PERTO_VENCER_ZONE:America/Sao_Paulo}
     dias-antecedencia: ${RECEITA_PERTO_VENCER_DIAS:7}
+
+services:
+  safety:
+    url: ${SAFETY_SERVICE_URL:http://localhost:8081}

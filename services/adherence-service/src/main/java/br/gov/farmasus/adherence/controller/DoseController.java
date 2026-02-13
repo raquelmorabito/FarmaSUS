@@ -1,6 +1,7 @@
 package br.gov.farmasus.adherence.controller;
 
 import br.gov.farmasus.adherence.dto.DoseResponse;
+import br.gov.farmasus.adherence.dto.RegistroDoseHistoricoResponse;
 import br.gov.farmasus.adherence.dto.RegistroDoseRequest;
 import br.gov.farmasus.adherence.model.TipoUsuario;
 import br.gov.farmasus.adherence.model.UsuarioPrincipal;
@@ -45,6 +46,12 @@ public class DoseController {
       @Valid @RequestBody RegistroDoseRequest request) {
     validarAcessoPaciente(pacienteId);
     return ResponseEntity.ok(doseService.registrarDose(pacienteId, doseId, request));
+  }
+
+  @GetMapping("/doses/historico")
+  public ResponseEntity<List<RegistroDoseHistoricoResponse>> listarHistorico(@PathVariable Long pacienteId) {
+    validarAcessoPaciente(pacienteId);
+    return ResponseEntity.ok(doseService.listarHistoricoTomadas(pacienteId));
   }
 
   private void validarAcessoPaciente(Long pacienteId) {

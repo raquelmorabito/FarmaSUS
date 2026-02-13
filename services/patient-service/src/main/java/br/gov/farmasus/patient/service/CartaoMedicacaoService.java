@@ -2,7 +2,9 @@ package br.gov.farmasus.patient.service;
 
 import br.gov.farmasus.patient.domain.Severidade;
 import br.gov.farmasus.patient.dto.AlertaPacienteResponse;
+import br.gov.farmasus.patient.dto.AlergiaPacienteResponse;
 import br.gov.farmasus.patient.dto.CartaoMedicacaoResponse;
+import br.gov.farmasus.patient.dto.PerfilClinicoPacienteResponse;
 import br.gov.farmasus.patient.dto.PrescricaoPacienteResponse;
 import br.gov.farmasus.patient.dto.ResumoCartaoMedicacaoResponse;
 import java.time.LocalDate;
@@ -23,13 +25,16 @@ import static org.springframework.http.HttpStatus.BAD_GATEWAY;
 @Service
 public class CartaoMedicacaoService {
   private final AlertaPacienteService alertaPacienteService;
+  private final PerfilClinicoPacienteService perfilClinicoPacienteService;
   private final RestTemplate restTemplate;
   private final String medicationServiceUrl;
 
   public CartaoMedicacaoService(
       AlertaPacienteService alertaPacienteService,
+      PerfilClinicoPacienteService perfilClinicoPacienteService,
       @Value("${services.medication.url:http://localhost:8080}") String medicationServiceUrl) {
     this.alertaPacienteService = alertaPacienteService;
+    this.perfilClinicoPacienteService = perfilClinicoPacienteService;
     this.restTemplate = new RestTemplate();
     this.medicationServiceUrl = medicationServiceUrl;
   }
@@ -37,9 +42,18 @@ public class CartaoMedicacaoService {
   public CartaoMedicacaoResponse obterCartao(Long pacienteId, String authorizationHeader) {
     List<PrescricaoPacienteResponse> prescricoes = buscarPrescricoes(pacienteId, authorizationHeader);
     List<AlertaPacienteResponse> alertas = alertaPacienteService.listarAlertas(pacienteId);
+    PerfilClinicoPacienteResponse perfil = perfilClinicoPacienteService.obterPerfil(pacienteId);
+    List<AlergiaPacienteResponse> alergias = perfil.alergias();
     ResumoCartaoMedicacaoResponse resumo = montarResumo(prescricoes, alertas);
 
-    return new CartaoMedicacaoResponse(pacienteId, prescricoes, alertas, resumo);
+    return new CartaoMedicacaoResponse(
+        pacienteId,
+        prescricoes,
+        alertas,
+        alergias,
+        perfil.tipoSanguineo(),
+        resumo
+    );
   }
 
   private List<PrescricaoPacienteResponse> buscarPrescricoes(Long pacienteId, String authorizationHeader) {

@@ -30,6 +30,9 @@ public class RegistroDose {
   @Column(nullable = false)
   private OffsetDateTime registradoEm;
 
+  @Column(length = 300)
+  private String comentario;
+
   public Long getId() {
     return id;
   }
@@ -60,5 +63,13 @@ public class RegistroDose {
 
   public void setRegistradoEm(OffsetDateTime registradoEm) {
     this.registradoEm = registradoEm;
+  }
+
+  public String getComentario() {
+    return comentario;
+  }
+
+  public void setComentario(String comentario) {
+    this.comentario = comentario;
   }
 }

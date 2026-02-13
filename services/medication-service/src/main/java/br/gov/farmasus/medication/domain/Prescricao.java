@@ -34,6 +34,9 @@ public class Prescricao {
   @Column(name = "frequencia_diaria", nullable = false)
   private Integer frequenciaDiaria;
 
+  @Column(name = "orientacoes_uso", length = 1000)
+  private String orientacoesUso;
+
   @ElementCollection(fetch = FetchType.EAGER)
   @CollectionTable(name = "prescricao_horarios", joinColumns = @JoinColumn(name = "prescricao_id"))
   @Column(name = "horario", nullable = false)
@@ -79,6 +82,14 @@ public class Prescricao {
 
   public void setFrequenciaDiaria(Integer frequenciaDiaria) {
     this.frequenciaDiaria = frequenciaDiaria;
+  }
+
+  public String getOrientacoesUso() {
+    return orientacoesUso;
+  }
+
+  public void setOrientacoesUso(String orientacoesUso) {
+    this.orientacoesUso = orientacoesUso;
   }
 
   public List<LocalTime> getHorarios() {
