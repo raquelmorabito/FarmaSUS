@@ -88,7 +88,7 @@ class DoseMeIntegrationTest {
     ResponseEntity<DoseResponse[]> response = restTemplate.exchange(
         "/pacientes/me/doses-hoje",
         HttpMethod.GET,
-        new HttpEntity<>(headers),
+        new HttpEntity<>(null, headers),
         DoseResponse[].class);
 
     assertThat(response.getStatusCode().value()).isEqualTo(200);

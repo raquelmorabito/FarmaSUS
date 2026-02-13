@@ -13,11 +13,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import javax.crypto.SecretKey;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -63,22 +61,12 @@ class JwtFlowIntegrationTest {
   @Autowired
   private org.springframework.boot.test.web.client.TestRestTemplate restTemplate;
 
-  @BeforeEach
-  void configurarHttpSemStreaming() {
-    SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-    requestFactory.setOutputStreaming(false);
-    restTemplate.getRestTemplate().setRequestFactory(requestFactory);
-  }
-
   @Test
   void deveRetornar401SemToken() {
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_JSON);
-
     ResponseEntity<String> response = restTemplate.exchange(
         "/pacientes/1/medicamentos",
-        HttpMethod.POST,
-        new HttpEntity<>(prescricaoPayload(), headers),
+        HttpMethod.GET,
+        new HttpEntity<>(null),
         String.class
     );
 

@@ -4,13 +4,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import br.gov.farmasus.medication.dto.PrescricaoRequest;
 import br.gov.farmasus.medication.dto.PrescricaoResponse;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
+import javax.crypto.SecretKey;
 import org.awaitility.Awaitility;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
@@ -24,9 +30,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -39,6 +47,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Import(PrescricaoIntegrationTest.TestRabbitConfig.class)
 @SuppressWarnings("resource")
 class PrescricaoIntegrationTest {
+  private static final String JWT_SECRET = "jwt-secret-integration-tests-32chars";
   private static final ZoneId ZONA_BR = ZoneId.of("America/Sao_Paulo");
   private static final String TEST_QUEUE = "test.medication.created";
 
@@ -67,6 +76,8 @@ class PrescricaoIntegrationTest {
     registry.add("spring.rabbitmq.port", () -> rabbitPort);
     registry.add("spring.rabbitmq.username", RABBIT::getAdminUsername);
     registry.add("spring.rabbitmq.password", RABBIT::getAdminPassword);
+    registry.add("jwt.secret", () -> JWT_SECRET);
+    registry.add("app.jwt.secret", () -> JWT_SECRET);
   }
 
   @Autowired
@@ -74,13 +85,6 @@ class PrescricaoIntegrationTest {
 
   @Autowired
   private RabbitAdmin rabbitAdmin;
-
-  @BeforeEach
-  void configurarHttpSemStreaming() {
-    SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-    requestFactory.setOutputStreaming(false);
-    restTemplate.getRestTemplate().setRequestFactory(requestFactory);
-  }
 
   @Test
   void deveCriarPrescricoesEPublicarEventos() {
@@ -105,15 +109,20 @@ class PrescricaoIntegrationTest {
         fim
     );
 
-    ResponseEntity<PrescricaoResponse> resposta1 = restTemplate.postForEntity(
+    HttpHeaders headers = new HttpHeaders();
+    headers.setBearerAuth(gerarTokenProfissional("prof1"));
+
+    ResponseEntity<PrescricaoResponse> resposta1 = restTemplate.exchange(
         "/pacientes/1/medicamentos",
-        varfarina,
+        HttpMethod.POST,
+        new HttpEntity<>(varfarina, headers),
         PrescricaoResponse.class
     );
 
-    ResponseEntity<PrescricaoResponse> resposta2 = restTemplate.postForEntity(
+    ResponseEntity<PrescricaoResponse> resposta2 = restTemplate.exchange(
         "/pacientes/1/medicamentos",
-        ibuprofeno,
+        HttpMethod.POST,
+        new HttpEntity<>(ibuprofeno, headers),
         PrescricaoResponse.class
     );
 
@@ -127,6 +136,19 @@ class PrescricaoIntegrationTest {
           assertThat(info).isNotNull();
           assertThat(info.getMessageCount()).isGreaterThanOrEqualTo(2);
         });
+  }
+
+  private String gerarTokenProfissional(String login) {
+    SecretKey key = Keys.hmacShaKeyFor(JWT_SECRET.getBytes(StandardCharsets.UTF_8));
+    OffsetDateTime agora = OffsetDateTime.now(ZONA_BR);
+    OffsetDateTime expiraEm = agora.plusMinutes(30);
+    return Jwts.builder()
+        .setSubject(login)
+        .claim("tipoUsuario", "PROFISSIONAL")
+        .setIssuedAt(Date.from(agora.toInstant()))
+        .setExpiration(Date.from(expiraEm.toInstant()))
+        .signWith(key, SignatureAlgorithm.HS256)
+        .compact();
   }
 
   @TestConfiguration

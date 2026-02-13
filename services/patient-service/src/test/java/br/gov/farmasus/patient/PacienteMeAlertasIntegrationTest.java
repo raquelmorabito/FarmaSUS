@@ -101,7 +101,7 @@ class PacienteMeAlertasIntegrationTest {
     ResponseEntity<AlertaPacienteResponse[]> response = restTemplate.exchange(
         "/pacientes/me/alertas",
         HttpMethod.GET,
-        new HttpEntity<>(headers),
+        new HttpEntity<>(null, headers),
         AlertaPacienteResponse[].class);
 
     assertThat(response.getStatusCode().value()).isEqualTo(200);
