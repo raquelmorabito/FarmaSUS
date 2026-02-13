@@ -38,6 +38,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @SuppressWarnings("resource")
 class PacienteMeAlertasIntegrationTest {
   private static final String JWT_SECRET = "jwt-secret-integration-tests-32chars";
+  private static final String PACIENTE_LOGIN = "pac_" + UUID.randomUUID().toString().replace("-", "").substring(0, 12);
 
   @Container
   private static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine")
@@ -76,7 +77,7 @@ class PacienteMeAlertasIntegrationTest {
     pacienteLoginRepository.deleteAll();
 
     PacienteLogin pacienteLogin = new PacienteLogin();
-    pacienteLogin.setLogin("paciente1");
+    pacienteLogin.setLogin(PACIENTE_LOGIN);
     pacienteLogin.setPacienteId(1L);
     pacienteLoginRepository.save(pacienteLogin);
 
@@ -96,7 +97,7 @@ class PacienteMeAlertasIntegrationTest {
   @Test
   void deveConsultarAlertasPeloEndpointMe() {
     HttpHeaders headers = new HttpHeaders();
-    headers.setBearerAuth(gerarToken("paciente1", "PACIENTE"));
+    headers.setBearerAuth(gerarToken(PACIENTE_LOGIN, "PACIENTE"));
 
     ResponseEntity<AlertaPacienteResponse[]> response = restTemplate.exchange(
         "/pacientes/me/alertas",

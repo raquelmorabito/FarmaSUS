@@ -9,10 +9,10 @@ SAFETY_URL="${SAFETY_URL:-http://localhost:8081}"
 PATIENT_URL="${PATIENT_URL:-http://localhost:8082}"
 ADHERENCE_URL="${ADHERENCE_URL:-http://localhost:8084}"
 
-AUTH_LOGIN="${AUTH_LOGIN:-prof1}"
-AUTH_SENHA="${AUTH_SENHA:-senha123}"
-AUTH_TIPO="${AUTH_TIPO:-PROFISSIONAL}"
-PACIENTE_ID="${PACIENTE_ID:-1}"
+AUTH_LOGIN="${AUTH_LOGIN:-${AUTH_SEED_PROF_LOGIN:-}}"
+AUTH_SENHA="${AUTH_SENHA:-${AUTH_SEED_PROF_SENHA:-}}"
+AUTH_TIPO="${AUTH_TIPO:-${AUTH_SEED_PROF_TIPO:-PROFISSIONAL}}"
+PACIENTE_ID="${PACIENTE_ID:-${SEED_PACIENTE_ID_1:-}}"
 
 TMP_DIR="$(mktemp -d /tmp/farmasus-e2e.XXXXXX)"
 
@@ -129,6 +129,10 @@ get_with_status() {
 need_cmd curl
 need_cmd python3
 need_cmd date
+
+[[ -n "$AUTH_LOGIN" ]] || fail "AUTH_LOGIN nao informado."
+[[ -n "$AUTH_SENHA" ]] || fail "AUTH_SENHA nao informado."
+[[ -n "$PACIENTE_ID" ]] || fail "PACIENTE_ID nao informado."
 
 log "Iniciando E2E FarmaSUS v$SCRIPT_VERSION"
 log "Validando disponibilidade dos servicos"

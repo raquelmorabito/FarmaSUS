@@ -20,6 +20,17 @@ spring:
     port: 5673
     username: farma
     password: farma
+    messaging:
+      exchange:
+        events: ${RABBITMQ_EXCHANGE_EVENTS:farma.events}
+      queue:
+        prescription-created: ${RABBITMQ_QUEUE_PRESCRIPTION_CREATED:adherence.medication.prescription.created}
+        prescription-created-dlq: ${RABBITMQ_QUEUE_PRESCRIPTION_CREATED_DLQ:adherence.medication.prescription.created.dlq}
+      routing:
+        prescription-created: ${RABBITMQ_ROUTING_PRESCRIPTION_CREATED:medication.prescription.created}
+        prescription-created-compat: ${RABBITMQ_ROUTING_PRESCRIPTION_CREATED_COMPAT:medication.created}
+        prescription-created-dlq: ${RABBITMQ_ROUTING_PRESCRIPTION_CREATED_DLQ:adherence.medication.prescription.created.dlq}
+        dose-registered: ${RABBITMQ_ROUTING_DOSE_REGISTERED:adherence.dose.registered}
   jackson:
     time-zone: America/Sao_Paulo
 
@@ -34,3 +45,9 @@ server:
 
 jwt:
   secret: ${JWT_SECRET}
+
+app:
+  paciente-login:
+    mappings:
+      ${SEED_PACIENTE_LOGIN_1}: ${SEED_PACIENTE_ID_1}
+      ${SEED_PACIENTE_LOGIN_2}: ${SEED_PACIENTE_ID_2}

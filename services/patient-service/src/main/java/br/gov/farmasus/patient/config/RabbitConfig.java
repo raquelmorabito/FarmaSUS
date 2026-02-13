@@ -16,27 +16,27 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class RabbitConfig {
-  public static final String EXCHANGE_NAME = "farma.events";
-  public static final String ALERTA_CRIADO_QUEUE = "patient.safety.alert.created";
-  public static final String ALERTA_CRIADO_DLQ = "patient.safety.alert.created.dlq";
-  public static final String ALERTA_CRIADO_ROUTING_KEY = "safety.alert.created";
-  public static final String ALERTA_CRIADO_DLQ_ROUTING_KEY = "patient.safety.alert.created.dlq";
+  private final RabbitMessagingProperties rabbitMessagingProperties;
+
+  public RabbitConfig(RabbitMessagingProperties rabbitMessagingProperties) {
+    this.rabbitMessagingProperties = rabbitMessagingProperties;
+  }
 
   @Bean
   public TopicExchange farmaEventsExchange() {
-    return new TopicExchange(EXCHANGE_NAME, true, false);
+    return new TopicExchange(rabbitMessagingProperties.exchange().events(), true, false);
   }
 
   @Bean
   public Queue alertaCriadoDlq() {
-    return QueueBuilder.durable(ALERTA_CRIADO_DLQ).build();
+    return QueueBuilder.durable(rabbitMessagingProperties.queue().alertCreatedDlq()).build();
   }
 
   @Bean
   public Queue alertaCriadoQueue() {
-    return QueueBuilder.durable(ALERTA_CRIADO_QUEUE)
-        .withArgument("x-dead-letter-exchange", EXCHANGE_NAME)
-        .withArgument("x-dead-letter-routing-key", ALERTA_CRIADO_DLQ_ROUTING_KEY)
+    return QueueBuilder.durable(rabbitMessagingProperties.queue().alertCreated())
+        .withArgument("x-dead-letter-exchange", rabbitMessagingProperties.exchange().events())
+        .withArgument("x-dead-letter-routing-key", rabbitMessagingProperties.routing().alertCreatedDlq())
         .build();
   }
 
@@ -44,14 +44,14 @@ public class RabbitConfig {
   public Binding alertaCriadoBinding(TopicExchange farmaEventsExchange, Queue alertaCriadoQueue) {
     return BindingBuilder.bind(alertaCriadoQueue)
         .to(farmaEventsExchange)
-        .with(ALERTA_CRIADO_ROUTING_KEY);
+        .with(rabbitMessagingProperties.routing().alertCreated());
   }
 
   @Bean
   public Binding alertaCriadoDlqBinding(TopicExchange farmaEventsExchange, Queue alertaCriadoDlq) {
     return BindingBuilder.bind(alertaCriadoDlq)
         .to(farmaEventsExchange)
-        .with(ALERTA_CRIADO_DLQ_ROUTING_KEY);
+        .with(rabbitMessagingProperties.routing().alertCreatedDlq());
   }
 
   @Bean

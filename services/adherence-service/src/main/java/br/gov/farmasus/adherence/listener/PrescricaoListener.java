@@ -1,6 +1,5 @@
 package br.gov.farmasus.adherence.listener;
 
-import br.gov.farmasus.adherence.config.RabbitConfig;
 import br.gov.farmasus.adherence.dto.PrescricaoCriadaEvent;
 import br.gov.farmasus.adherence.service.PrescricaoAdesaoService;
 import org.slf4j.Logger;
@@ -18,7 +17,7 @@ public class PrescricaoListener {
     this.prescricaoAdesaoService = prescricaoAdesaoService;
   }
 
-  @RabbitListener(queues = RabbitConfig.PRESCRICAO_CRIADA_QUEUE)
+  @RabbitListener(queues = "${rabbitmq.messaging.queue.prescription-created}")
   public void consumirPrescricaoCriada(PrescricaoCriadaEvent event) {
     if (event == null) {
       logger.info(

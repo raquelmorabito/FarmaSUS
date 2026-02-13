@@ -33,7 +33,7 @@ public class CartaoMedicacaoService {
       AlertaPacienteService alertaPacienteService,
       PerfilClinicoPacienteService perfilClinicoPacienteService,
       RestTemplate restTemplate,
-      @Value("${services.medication.url:http://localhost:8080}") String medicationServiceUrl) {
+      @Value("${services.medication.url}") String medicationServiceUrl) {
     this.alertaPacienteService = alertaPacienteService;
     this.perfilClinicoPacienteService = perfilClinicoPacienteService;
     this.restTemplate = restTemplate;

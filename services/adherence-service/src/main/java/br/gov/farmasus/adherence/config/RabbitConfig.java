@@ -16,29 +16,27 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class RabbitConfig {
-  public static final String EXCHANGE_EVENTS = "farma.events";
-  public static final String PRESCRICAO_CRIADA_QUEUE = "adherence.medication.prescription.created";
-  public static final String PRESCRICAO_CRIADA_DLQ = "adherence.medication.prescription.created.dlq";
-  public static final String PRESCRICAO_CRIADA_ROUTING_KEY = "medication.prescription.created";
-  public static final String PRESCRICAO_CRIADA_ROUTING_KEY_COMPAT = "medication.created";
-  public static final String PRESCRICAO_CRIADA_DLQ_ROUTING_KEY = "adherence.medication.prescription.created.dlq";
-  public static final String DOSE_REGISTRADA_ROUTING_KEY = "adherence.dose.registered";
+  private final RabbitMessagingProperties rabbitMessagingProperties;
+
+  public RabbitConfig(RabbitMessagingProperties rabbitMessagingProperties) {
+    this.rabbitMessagingProperties = rabbitMessagingProperties;
+  }
 
   @Bean
   public TopicExchange eventsExchange() {
-    return new TopicExchange(EXCHANGE_EVENTS, true, false);
+    return new TopicExchange(rabbitMessagingProperties.exchange().events(), true, false);
   }
 
   @Bean
   public Queue prescricaoCriadaDlq() {
-    return QueueBuilder.durable(PRESCRICAO_CRIADA_DLQ).build();
+    return QueueBuilder.durable(rabbitMessagingProperties.queue().prescriptionCreatedDlq()).build();
   }
 
   @Bean
   public Queue prescricaoCriadaQueue() {
-    return QueueBuilder.durable(PRESCRICAO_CRIADA_QUEUE)
-        .withArgument("x-dead-letter-exchange", EXCHANGE_EVENTS)
-        .withArgument("x-dead-letter-routing-key", PRESCRICAO_CRIADA_DLQ_ROUTING_KEY)
+    return QueueBuilder.durable(rabbitMessagingProperties.queue().prescriptionCreated())
+        .withArgument("x-dead-letter-exchange", rabbitMessagingProperties.exchange().events())
+        .withArgument("x-dead-letter-routing-key", rabbitMessagingProperties.routing().prescriptionCreatedDlq())
         .build();
   }
 
@@ -46,21 +44,21 @@ public class RabbitConfig {
   public Binding prescricaoCriadaBinding(TopicExchange eventsExchange, Queue prescricaoCriadaQueue) {
     return BindingBuilder.bind(prescricaoCriadaQueue)
         .to(eventsExchange)
-        .with(PRESCRICAO_CRIADA_ROUTING_KEY);
+        .with(rabbitMessagingProperties.routing().prescriptionCreated());
   }
 
   @Bean
   public Binding prescricaoCriadaBindingCompat(TopicExchange eventsExchange, Queue prescricaoCriadaQueue) {
     return BindingBuilder.bind(prescricaoCriadaQueue)
         .to(eventsExchange)
-        .with(PRESCRICAO_CRIADA_ROUTING_KEY_COMPAT);
+        .with(rabbitMessagingProperties.routing().prescriptionCreatedCompat());
   }
 
   @Bean
   public Binding prescricaoCriadaDlqBinding(TopicExchange eventsExchange, Queue prescricaoCriadaDlq) {
     return BindingBuilder.bind(prescricaoCriadaDlq)
         .to(eventsExchange)
-        .with(PRESCRICAO_CRIADA_DLQ_ROUTING_KEY);
+        .with(rabbitMessagingProperties.routing().prescriptionCreatedDlq());
   }
 
   @Bean

@@ -10,12 +10,15 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class RabbitConfig {
+    private final RabbitMessagingProperties rabbitMessagingProperties;
 
-    public static final String EXCHANGE_EVENTS = "farma.events";
+    public RabbitConfig(RabbitMessagingProperties rabbitMessagingProperties) {
+        this.rabbitMessagingProperties = rabbitMessagingProperties;
+    }
 
     @Bean
     public TopicExchange eventsExchange() {
-        return new TopicExchange(EXCHANGE_EVENTS, true, false);
+        return new TopicExchange(rabbitMessagingProperties.exchange().events(), true, false);
     }
 
     @Bean

@@ -1,6 +1,6 @@
 package br.gov.farmasus.adherence.service;
 
-import br.gov.farmasus.adherence.config.RabbitConfig;
+import br.gov.farmasus.adherence.config.RabbitMessagingProperties;
 import br.gov.farmasus.adherence.domain.Dose;
 import br.gov.farmasus.adherence.domain.RegistroDose;
 import br.gov.farmasus.adherence.dto.DoseRegistradaEvent;
@@ -26,13 +26,16 @@ public class DoseService {
   private final DoseRepository doseRepository;
   private final RegistroDoseRepository registroDoseRepository;
   private final RabbitTemplate rabbitTemplate;
+  private final RabbitMessagingProperties rabbitMessagingProperties;
 
   public DoseService(DoseRepository doseRepository,
                      RegistroDoseRepository registroDoseRepository,
-                     RabbitTemplate rabbitTemplate) {
+                     RabbitTemplate rabbitTemplate,
+                     RabbitMessagingProperties rabbitMessagingProperties) {
     this.doseRepository = doseRepository;
     this.registroDoseRepository = registroDoseRepository;
     this.rabbitTemplate = rabbitTemplate;
+    this.rabbitMessagingProperties = rabbitMessagingProperties;
   }
 
   @Transactional(readOnly = true)
@@ -103,6 +106,9 @@ public class DoseService {
         request.status().name(),
         request.registradoEm()
     );
-    rabbitTemplate.convertAndSend(RabbitConfig.EXCHANGE_EVENTS, RabbitConfig.DOSE_REGISTRADA_ROUTING_KEY, event);
+    rabbitTemplate.convertAndSend(
+        rabbitMessagingProperties.exchange().events(),
+        rabbitMessagingProperties.routing().doseRegistered(),
+        event);
   }
 }

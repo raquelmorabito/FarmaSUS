@@ -4,6 +4,26 @@ spring:
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+  datasource:
+    url: ${AUTH_DB_URL:jdbc:postgresql://localhost:5438/authdb}
+    username: ${AUTH_DB_USERNAME:farma}
+    password: ${AUTH_DB_PASSWORD:farma}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: America/Sao_Paulo
+  flyway:
+    enabled: true
+    placeholders:
+      seed_paciente_login: ${AUTH_SEED_PACIENTE_LOGIN}
+      seed_paciente_senha: ${AUTH_SEED_PACIENTE_SENHA}
+      seed_paciente_tipo: ${AUTH_SEED_PACIENTE_TIPO:PACIENTE}
+      seed_prof_login: ${AUTH_SEED_PROF_LOGIN}
+      seed_prof_senha: ${AUTH_SEED_PROF_SENHA}
+      seed_prof_tipo: ${AUTH_SEED_PROF_TIPO:PROFISSIONAL}
   jackson:
     time-zone: America/Sao_Paulo
 

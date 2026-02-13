@@ -20,6 +20,15 @@ spring:
     port: 5673
     username: farma
     password: farma
+    messaging:
+      exchange:
+        events: ${RABBITMQ_EXCHANGE_EVENTS:farma.events}
+      queue:
+        alert-created: ${RABBITMQ_QUEUE_ALERT_CREATED:patient.safety.alert.created}
+        alert-created-dlq: ${RABBITMQ_QUEUE_ALERT_CREATED_DLQ:patient.safety.alert.created.dlq}
+      routing:
+        alert-created: ${RABBITMQ_ROUTING_ALERT_CREATED:safety.alert.created}
+        alert-created-dlq: ${RABBITMQ_ROUTING_ALERT_CREATED_DLQ:patient.safety.alert.created.dlq}
 
 springdoc:
   swagger-ui:
@@ -38,3 +47,8 @@ services:
     url: ${MEDICATION_SERVICE_URL:http://localhost:8080}
   adherence:
     url: ${ADHERENCE_SERVICE_URL:http://localhost:8084}
+
+http:
+  client:
+    connect-timeout-ms: ${HTTP_CLIENT_CONNECT_TIMEOUT_MS:2000}
+    read-timeout-ms: ${HTTP_CLIENT_READ_TIMEOUT_MS:5000}

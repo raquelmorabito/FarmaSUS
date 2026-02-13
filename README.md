@@ -114,12 +114,20 @@ Ainda nao coberto nesta versao:
 ### 2) Subir ambiente
 ```bash
 export JWT_SECRET="$(openssl rand -base64 48)"
+export SEED_PACIENTE_LOGIN_1="pac_$(date +%s)"
+export SEED_PACIENTE_ID_1="1"
+export SEED_PACIENTE_LOGIN_2="pac_$(date +%s)_2"
+export SEED_PACIENTE_ID_2="2"
+export AUTH_SEED_PACIENTE_LOGIN="$SEED_PACIENTE_LOGIN_1"
+export AUTH_SEED_PACIENTE_SENHA="$(openssl rand -hex 8)"
+export AUTH_SEED_PROF_LOGIN="prof_$(date +%s)"
+export AUTH_SEED_PROF_SENHA="$(openssl rand -hex 8)"
 docker compose -f infra/docker-compose.yml up -d --build
 ```
 
 ### 3) Validar fluxo E2E
 ```bash
-AUTH_LOGIN=prof1 AUTH_SENHA=senha123 AUTH_TIPO=PROFISSIONAL ./test_e2e_local.sh
+AUTH_LOGIN="$AUTH_SEED_PROF_LOGIN" AUTH_SENHA="$AUTH_SEED_PROF_SENHA" AUTH_TIPO=PROFISSIONAL PACIENTE_ID="$SEED_PACIENTE_ID_1" ./test_e2e_local.sh
 ```
 
 Se o fluxo estiver correto, o script finaliza com `E2E OK`.
@@ -139,13 +147,15 @@ Variaveis suportadas:
 - `RUN_MVN_TESTS=1` para executar testes Maven principais.
 - `KEEP_UP=1` para manter containers no final.
 - `JWT_SECRET=...` para informar segredo JWT explicitamente.
+- `AUTH_SEED_PACIENTE_LOGIN`, `AUTH_SEED_PACIENTE_SENHA`, `AUTH_SEED_PROF_LOGIN`, `AUTH_SEED_PROF_SENHA` para controlar seed de usuarios no `auth-service`.
+- `SEED_PACIENTE_LOGIN_1`, `SEED_PACIENTE_ID_1`, `SEED_PACIENTE_LOGIN_2`, `SEED_PACIENTE_ID_2` para mapeamento login/paciente nos servicos.
 
 Exemplo:
 ```bash
 RUN_MVN_TESTS=1 KEEP_UP=1 ./validate_all.sh
 ```
 
-Observacao: se `JWT_SECRET` nao for informada, `validate_all.sh` gera uma chave forte automaticamente para a execucao.
+Observacao: se `JWT_SECRET` e seeds nao forem informadas, `validate_all.sh` gera valores automaticamente para a execucao.
 
 ## Testes por servico
 ```bash

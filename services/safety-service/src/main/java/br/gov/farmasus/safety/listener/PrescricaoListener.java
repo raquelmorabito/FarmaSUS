@@ -1,6 +1,5 @@
 package br.gov.farmasus.safety.listener;
 
-import br.gov.farmasus.safety.config.RabbitConfig;
 import br.gov.farmasus.safety.dto.PrescricaoCriadaEvent;
 import br.gov.farmasus.safety.service.AlertaService;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -14,7 +13,7 @@ public class PrescricaoListener {
     this.alertaService = alertaService;
   }
 
-  @RabbitListener(queues = RabbitConfig.MEDICATION_CREATED_QUEUE)
+  @RabbitListener(queues = "${rabbitmq.messaging.queue.medication-created}")
   public void consumirPrescricaoCriada(PrescricaoCriadaEvent event) {
     alertaService.processarPrescricao(event);
   }

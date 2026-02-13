@@ -28,8 +28,8 @@ public class LembretePacienteService {
 
   public LembretePacienteService(
       RestTemplate restTemplate,
-      @Value("${services.medication.url:http://localhost:8080}") String medicationServiceUrl,
-      @Value("${services.adherence.url:http://localhost:8084}") String adherenceServiceUrl) {
+      @Value("${services.medication.url}") String medicationServiceUrl,
+      @Value("${services.adherence.url}") String adherenceServiceUrl) {
     this.restTemplate = restTemplate;
     this.medicationServiceUrl = medicationServiceUrl;
     this.adherenceServiceUrl = adherenceServiceUrl;

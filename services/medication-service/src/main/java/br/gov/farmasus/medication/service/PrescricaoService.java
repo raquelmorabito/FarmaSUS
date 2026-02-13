@@ -1,6 +1,7 @@
 package br.gov.farmasus.medication.service;
 
 import br.gov.farmasus.medication.config.RabbitConfig;
+import br.gov.farmasus.medication.config.RabbitMessagingProperties;
 import br.gov.farmasus.medication.domain.Prescricao;
 import br.gov.farmasus.medication.dto.PrescricaoCriadaEvent;
 import br.gov.farmasus.medication.dto.PrescricaoRequest;
@@ -24,22 +25,24 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 public class PrescricaoService {
-  private static final String ROUTING_KEY = "medication.created";
   private static final ZoneOffset OFFSET_BR = ZoneOffset.ofHours(-3);
 
   private final PrescricaoRepository prescricaoRepository;
   private final RabbitTemplate rabbitTemplate;
   private final RestTemplate restTemplate;
   private final String safetyServiceUrl;
+  private final RabbitMessagingProperties rabbitMessagingProperties;
 
   public PrescricaoService(
       PrescricaoRepository prescricaoRepository,
       RabbitTemplate rabbitTemplate,
       RestTemplate restTemplate,
-      @Value("${services.safety.url:http://localhost:8081}") String safetyServiceUrl) {
+      RabbitMessagingProperties rabbitMessagingProperties,
+      @Value("${services.safety.url}") String safetyServiceUrl) {
     this.prescricaoRepository = prescricaoRepository;
     this.rabbitTemplate = rabbitTemplate;
     this.restTemplate = restTemplate;
+    this.rabbitMessagingProperties = rabbitMessagingProperties;
     this.safetyServiceUrl = safetyServiceUrl;
   }
 
@@ -73,7 +76,10 @@ public class PrescricaoService {
         salva.getFim()
     );
 
-    rabbitTemplate.convertAndSend(RabbitConfig.EXCHANGE_EVENTS, ROUTING_KEY, evento);
+    rabbitTemplate.convertAndSend(
+        rabbitMessagingProperties.exchange().events(),
+        rabbitMessagingProperties.routing().medicationCreated(),
+        evento);
 
     return toResponse(salva);
   }

@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.UUID;
 import java.util.Date;
 import javax.crypto.SecretKey;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +38,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 class DoseMeIntegrationTest {
   private static final String JWT_SECRET = "jwt-secret-integration-tests-32chars";
   private static final ZoneId ZONA_BR = ZoneId.of("America/Sao_Paulo");
+  private static final String PACIENTE_LOGIN = "pac_" + UUID.randomUUID().toString().replace("-", "").substring(0, 12);
 
   @Container
   private static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine")
@@ -57,7 +59,10 @@ class DoseMeIntegrationTest {
     registry.add("spring.rabbitmq.username", RABBIT::getAdminUsername);
     registry.add("spring.rabbitmq.password", RABBIT::getAdminPassword);
     registry.add("jwt.secret", () -> JWT_SECRET);
-    registry.add("app.jwt.secret", () -> JWT_SECRET);
+    registry.add("SEED_PACIENTE_LOGIN_1", () -> PACIENTE_LOGIN);
+    registry.add("SEED_PACIENTE_ID_1", () -> "1");
+    registry.add("SEED_PACIENTE_LOGIN_2", () -> "paciente2");
+    registry.add("SEED_PACIENTE_ID_2", () -> "2");
   }
 
   @Autowired
@@ -83,7 +88,7 @@ class DoseMeIntegrationTest {
   @Test
   void deveConsultarDosesHojePeloEndpointMe() {
     HttpHeaders headers = new HttpHeaders();
-    headers.setBearerAuth(gerarToken("paciente1", "PACIENTE"));
+    headers.setBearerAuth(gerarToken(PACIENTE_LOGIN, "PACIENTE"));
 
     ResponseEntity<DoseResponse[]> response = restTemplate.exchange(
         "/pacientes/me/doses-hoje",

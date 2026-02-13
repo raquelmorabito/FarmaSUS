@@ -2,6 +2,7 @@ package br.gov.farmasus.medication.config;
 
 import br.gov.farmasus.medication.domain.PacienteLogin;
 import br.gov.farmasus.medication.repository.PacienteLoginRepository;
+import java.util.Map;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,13 +12,25 @@ import org.springframework.context.annotation.Profile;
 @Profile("docker")
 public class DockerSeedConfig {
   @Bean
-  public CommandLineRunner seedPacienteLogin(PacienteLoginRepository repository) {
+  public CommandLineRunner seedPacienteLogin(
+      PacienteLoginRepository repository,
+      PacienteLoginSeedProperties seedProperties) {
     return args -> {
-      if (repository.findByLogin("paciente1").isEmpty()) {
-        PacienteLogin paciente1 = new PacienteLogin();
-        paciente1.setLogin("paciente1");
-        paciente1.setPacienteId(1L);
-        repository.save(paciente1);
+      Map<String, Long> mappings = seedProperties.mappings();
+      if (mappings == null || mappings.isEmpty()) {
+        return;
+      }
+      for (Map.Entry<String, Long> entry : mappings.entrySet()) {
+        if (entry.getKey() == null || entry.getKey().isBlank() || entry.getValue() == null) {
+          continue;
+        }
+        if (repository.findByLogin(entry.getKey()).isPresent()) {
+          continue;
+        }
+        PacienteLogin pacienteLogin = new PacienteLogin();
+        pacienteLogin.setLogin(entry.getKey());
+        pacienteLogin.setPacienteId(entry.getValue());
+        repository.save(pacienteLogin);
       }
     };
   }

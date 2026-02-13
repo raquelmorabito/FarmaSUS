@@ -20,6 +20,12 @@ spring:
     port: 5672
     username: farma
     password: farma
+    messaging:
+      exchange:
+        events: ${RABBITMQ_EXCHANGE_EVENTS:farma.events}
+      routing:
+        medication-created: ${RABBITMQ_ROUTING_MEDICATION_CREATED:medication.created}
+        medication-prescription-expiring: ${RABBITMQ_ROUTING_MEDICATION_PRESCRIPTION_EXPIRING:medication.prescription.expiring}
 
 springdoc:
   swagger-ui:
@@ -47,3 +53,14 @@ jobs:
 services:
   safety:
     url: ${SAFETY_SERVICE_URL:http://safety-service:8081}
+
+app:
+  seed:
+    paciente-login:
+      mappings:
+        ${SEED_PACIENTE_LOGIN_1}: ${SEED_PACIENTE_ID_1}
+
+http:
+  client:
+    connect-timeout-ms: ${HTTP_CLIENT_CONNECT_TIMEOUT_MS:2000}
+    read-timeout-ms: ${HTTP_CLIENT_READ_TIMEOUT_MS:5000}

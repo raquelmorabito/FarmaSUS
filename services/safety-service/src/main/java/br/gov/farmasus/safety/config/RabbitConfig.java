@@ -16,27 +16,27 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class RabbitConfig {
-  public static final String EXCHANGE_NAME = "farma.events";
-  public static final String MEDICATION_CREATED_QUEUE = "safety.medication.created";
-  public static final String MEDICATION_CREATED_DLQ = "safety.medication.created.dlq";
-  public static final String MEDICATION_CREATED_ROUTING_KEY = "medication.created";
-  public static final String MEDICATION_CREATED_DLQ_ROUTING_KEY = "safety.medication.created.dlq";
+  private final RabbitMessagingProperties rabbitMessagingProperties;
+
+  public RabbitConfig(RabbitMessagingProperties rabbitMessagingProperties) {
+    this.rabbitMessagingProperties = rabbitMessagingProperties;
+  }
 
   @Bean
   public TopicExchange farmaEventsExchange() {
-    return new TopicExchange(EXCHANGE_NAME, true, false);
+    return new TopicExchange(rabbitMessagingProperties.exchange().events(), true, false);
   }
 
   @Bean
   public Queue medicationCreatedDlq() {
-    return QueueBuilder.durable(MEDICATION_CREATED_DLQ).build();
+    return QueueBuilder.durable(rabbitMessagingProperties.queue().medicationCreatedDlq()).build();
   }
 
   @Bean
   public Queue medicationCreatedQueue() {
-    return QueueBuilder.durable(MEDICATION_CREATED_QUEUE)
-        .withArgument("x-dead-letter-exchange", EXCHANGE_NAME)
-        .withArgument("x-dead-letter-routing-key", MEDICATION_CREATED_DLQ_ROUTING_KEY)
+    return QueueBuilder.durable(rabbitMessagingProperties.queue().medicationCreated())
+        .withArgument("x-dead-letter-exchange", rabbitMessagingProperties.exchange().events())
+        .withArgument("x-dead-letter-routing-key", rabbitMessagingProperties.routing().medicationCreatedDlq())
         .build();
   }
 
@@ -44,14 +44,14 @@ public class RabbitConfig {
   public Binding medicationCreatedBinding(TopicExchange farmaEventsExchange, Queue medicationCreatedQueue) {
     return BindingBuilder.bind(medicationCreatedQueue)
         .to(farmaEventsExchange)
-        .with(MEDICATION_CREATED_ROUTING_KEY);
+        .with(rabbitMessagingProperties.routing().medicationCreated());
   }
 
   @Bean
   public Binding medicationCreatedDlqBinding(TopicExchange farmaEventsExchange, Queue medicationCreatedDlq) {
     return BindingBuilder.bind(medicationCreatedDlq)
         .to(farmaEventsExchange)
-        .with(MEDICATION_CREATED_DLQ_ROUTING_KEY);
+        .with(rabbitMessagingProperties.routing().medicationCreatedDlq());
   }
 
   @Bean

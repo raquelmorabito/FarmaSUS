@@ -1,6 +1,6 @@
 package br.gov.farmasus.safety.service;
 
-import br.gov.farmasus.safety.config.RabbitConfig;
+import br.gov.farmasus.safety.config.RabbitMessagingProperties;
 import br.gov.farmasus.safety.domain.AlertaInteracao;
 import br.gov.farmasus.safety.domain.InteracaoMedicamento;
 import br.gov.farmasus.safety.domain.PrescricaoPaciente;
@@ -22,23 +22,25 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AlertaService {
-  private static final String ALERTA_ROUTING_KEY = "safety.alert.created";
   private static final ZoneId ZONA_BR = ZoneId.of("America/Sao_Paulo");
 
   private final PrescricaoPacienteRepository prescricaoRepository;
   private final AlertaInteracaoRepository alertaRepository;
   private final InteracaoMedicamentoService interacaoService;
   private final RabbitTemplate rabbitTemplate;
+  private final RabbitMessagingProperties rabbitMessagingProperties;
 
   public AlertaService(
       PrescricaoPacienteRepository prescricaoRepository,
       AlertaInteracaoRepository alertaRepository,
       InteracaoMedicamentoService interacaoService,
-      RabbitTemplate rabbitTemplate) {
+      RabbitTemplate rabbitTemplate,
+      RabbitMessagingProperties rabbitMessagingProperties) {
     this.prescricaoRepository = prescricaoRepository;
     this.alertaRepository = alertaRepository;
     this.interacaoService = interacaoService;
     this.rabbitTemplate = rabbitTemplate;
+    this.rabbitMessagingProperties = rabbitMessagingProperties;
   }
 
   @Transactional
@@ -99,7 +101,10 @@ public class AlertaService {
           salvo.getRecomendacao()
       );
 
-      rabbitTemplate.convertAndSend(RabbitConfig.EXCHANGE_NAME, ALERTA_ROUTING_KEY, alertaEvent);
+      rabbitTemplate.convertAndSend(
+          rabbitMessagingProperties.exchange().events(),
+          rabbitMessagingProperties.routing().safetyAlertCreated(),
+          alertaEvent);
     }
   }
 
