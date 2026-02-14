@@ -102,6 +102,7 @@ if [[ -z "$JWT_SECRET" ]]; then
 fi
 
 log "Iniciando validacao completa FarmaSUS v$SCRIPT_VERSION"
+log "Flags: RUN_MVN_TESTS=$RUN_MVN_TESTS KEEP_UP=$KEEP_UP"
 log "Credenciais E2E em uso: AUTH_LOGIN=$AUTH_LOGIN AUTH_TIPO=$AUTH_TIPO"
 log "Limpando stack anterior..."
 compose_with_env down -v >/dev/null 2>&1 || true

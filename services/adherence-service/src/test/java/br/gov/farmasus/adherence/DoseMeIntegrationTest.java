@@ -6,6 +6,7 @@ import br.gov.farmasus.adherence.domain.Dose;
 import br.gov.farmasus.adherence.domain.DoseStatus;
 import br.gov.farmasus.adherence.dto.DoseResponse;
 import br.gov.farmasus.adherence.repository.DoseRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -59,6 +60,8 @@ class DoseMeIntegrationTest {
     registry.add("spring.rabbitmq.username", RABBIT::getAdminUsername);
     registry.add("spring.rabbitmq.password", RABBIT::getAdminPassword);
     registry.add("jwt.secret", () -> JWT_SECRET);
+    registry.add("app.paciente-login.mappings." + PACIENTE_LOGIN, () -> "1");
+    registry.add("app.paciente-login.mappings.paciente2", () -> "2");
     registry.add("SEED_PACIENTE_LOGIN_1", () -> PACIENTE_LOGIN);
     registry.add("SEED_PACIENTE_ID_1", () -> "1");
     registry.add("SEED_PACIENTE_LOGIN_2", () -> "paciente2");
@@ -70,6 +73,9 @@ class DoseMeIntegrationTest {
 
   @Autowired
   private DoseRepository doseRepository;
+
+  @Autowired
+  private ObjectMapper objectMapper;
 
   @BeforeEach
   void prepararDados() {
@@ -90,17 +96,25 @@ class DoseMeIntegrationTest {
     HttpHeaders headers = new HttpHeaders();
     headers.setBearerAuth(gerarToken(PACIENTE_LOGIN, "PACIENTE"));
 
-    ResponseEntity<DoseResponse[]> response = restTemplate.exchange(
+    ResponseEntity<String> response = restTemplate.exchange(
         "/pacientes/me/doses-hoje",
         HttpMethod.GET,
         new HttpEntity<>(null, headers),
-        DoseResponse[].class);
+        String.class);
 
     assertThat(response.getStatusCode().value()).isEqualTo(200);
-    assertThat(response.getBody()).isNotNull();
-    assertThat(response.getBody()).hasSize(1);
-    assertThat(response.getBody()[0].nomeMedicamento()).isEqualTo("Dipirona");
-    assertThat(response.getBody()[0].status()).isEqualTo("PENDENTE");
+    assertThat(response.getBody()).isNotBlank();
+
+    DoseResponse[] doses;
+    try {
+      doses = objectMapper.readValue(response.getBody(), DoseResponse[].class);
+    } catch (Exception ex) {
+      throw new AssertionError("Falha ao desserializar resposta de /pacientes/me/doses-hoje: " + response.getBody(), ex);
+    }
+
+    assertThat(doses).hasSize(1);
+    assertThat(doses[0].nomeMedicamento()).isEqualTo("Dipirona");
+    assertThat(doses[0].status()).isEqualTo("PENDENTE");
   }
 
   private String gerarToken(String login, String tipoUsuario) {
