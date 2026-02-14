@@ -20,15 +20,17 @@ spring:
     port: 5672
     username: farma
     password: farma
-    messaging:
-      exchange:
-        events: ${RABBITMQ_EXCHANGE_EVENTS:farma.events}
-      queue:
-        alert-created: ${RABBITMQ_QUEUE_ALERT_CREATED:patient.safety.alert.created}
-        alert-created-dlq: ${RABBITMQ_QUEUE_ALERT_CREATED_DLQ:patient.safety.alert.created.dlq}
-      routing:
-        alert-created: ${RABBITMQ_ROUTING_ALERT_CREATED:safety.alert.created}
-        alert-created-dlq: ${RABBITMQ_ROUTING_ALERT_CREATED_DLQ:patient.safety.alert.created.dlq}
+
+rabbitmq:
+  messaging:
+    exchange:
+      events: ${RABBITMQ_EXCHANGE_EVENTS:farma.events}
+    queue:
+      alert-created: ${RABBITMQ_QUEUE_ALERT_CREATED:patient.safety.alert.created}
+      alert-created-dlq: ${RABBITMQ_QUEUE_ALERT_CREATED_DLQ:patient.safety.alert.created.dlq}
+    routing:
+      alert-created: ${RABBITMQ_ROUTING_ALERT_CREATED:safety.alert.created}
+      alert-created-dlq: ${RABBITMQ_ROUTING_ALERT_CREATED_DLQ:patient.safety.alert.created.dlq}
 
 springdoc:
   swagger-ui:

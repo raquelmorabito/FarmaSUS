@@ -20,12 +20,14 @@ spring:
     port: 5673
     username: farma
     password: farma
-    messaging:
-      exchange:
-        events: ${RABBITMQ_EXCHANGE_EVENTS:farma.events}
-      routing:
-        medication-created: ${RABBITMQ_ROUTING_MEDICATION_CREATED:medication.created}
-        medication-prescription-expiring: ${RABBITMQ_ROUTING_MEDICATION_PRESCRIPTION_EXPIRING:medication.prescription.expiring}
+
+rabbitmq:
+  messaging:
+    exchange:
+      events: ${RABBITMQ_EXCHANGE_EVENTS:farma.events}
+    routing:
+      medication-created: ${RABBITMQ_ROUTING_MEDICATION_CREATED:medication.created}
+      medication-prescription-expiring: ${RABBITMQ_ROUTING_MEDICATION_PRESCRIPTION_EXPIRING:medication.prescription.expiring}
 
 springdoc:
   swagger-ui:
