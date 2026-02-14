@@ -101,6 +101,17 @@ wait_health "patient-service" "http://localhost:8082/actuator/health"
 wait_health "auth-service" "http://localhost:8083/actuator/health"
 wait_health "adherence-service" "http://localhost:8084/actuator/health"
 
+log "Validando login seed no auth-service..."
+LOGIN_PAYLOAD="$(printf '{"login":"%s","senha":"%s","tipoUsuario":"%s"}' \
+  "$AUTH_SEED_PROF_LOGIN" "$AUTH_SEED_PROF_SENHA" "$AUTH_SEED_PROF_TIPO")"
+LOGIN_CODE="$(curl -sS -o /tmp/auth-login.json -w '%{http_code}' \
+  -X POST "http://localhost:8083/auth/login" \
+  -H 'Content-Type: application/json' \
+  -d "$LOGIN_PAYLOAD" || true)"
+if [[ "$LOGIN_CODE" != "200" ]]; then
+  fail "Login seed falhou no auth-service (HTTP $LOGIN_CODE). Body: $(cat /tmp/auth-login.json 2>/dev/null || true)"
+fi
+
 cat > .env.local.generated <<EOF
 JWT_SECRET=$JWT_SECRET
 SEED_PACIENTE_LOGIN_1=$SEED_PACIENTE_LOGIN_1
@@ -113,6 +124,10 @@ AUTH_SEED_PACIENTE_TIPO=$AUTH_SEED_PACIENTE_TIPO
 AUTH_SEED_PROF_LOGIN=$AUTH_SEED_PROF_LOGIN
 AUTH_SEED_PROF_SENHA=$AUTH_SEED_PROF_SENHA
 AUTH_SEED_PROF_TIPO=$AUTH_SEED_PROF_TIPO
+AUTH_LOGIN=$AUTH_SEED_PROF_LOGIN
+AUTH_SENHA=$AUTH_SEED_PROF_SENHA
+AUTH_TIPO=$AUTH_SEED_PROF_TIPO
+PACIENTE_ID=$SEED_PACIENTE_ID_1
 EOF
 
 log "Stack pronta."

@@ -6,6 +6,7 @@ Use o script abaixo para:
 - gerar variaveis obrigatorias automaticamente;
 - subir a stack Docker;
 - esperar cada servico ficar saudavel;
+- validar login seed no `auth-service`;
 - salvar credenciais geradas para testes em `.env.local.generated`.
 
 ```bash
@@ -23,10 +24,10 @@ Esses valores devem ser usados no E2E.
 
 ```bash
 source .env.local.generated
-AUTH_LOGIN="$AUTH_SEED_PROF_LOGIN" \
-AUTH_SENHA="$AUTH_SEED_PROF_SENHA" \
-AUTH_TIPO="$AUTH_SEED_PROF_TIPO" \
-PACIENTE_ID="$SEED_PACIENTE_ID_1" \
+AUTH_LOGIN="$AUTH_LOGIN" \
+AUTH_SENHA="$AUTH_SENHA" \
+AUTH_TIPO="$AUTH_TIPO" \
+PACIENTE_ID="$PACIENTE_ID" \
 ./test_e2e_local.sh
 ```
 
@@ -103,6 +104,17 @@ docker logs --tail 200 farma-adherence-service
 
 4. Erro de Rabbit/placeholder:
 - confirme que esta usando o commit que corrige prefixo de propriedades RabbitMQ.
+
+5. `Falha no login. HTTP 401` no E2E:
+- rode `source .env.local.generated`;
+- execute o E2E usando `AUTH_LOGIN/AUTH_SENHA/AUTH_TIPO` do arquivo;
+- se persistir, rode:
+```bash
+cat .env.local.generated
+curl -i -X POST http://localhost:8083/auth/login \
+  -H 'Content-Type: application/json' \
+  -d "{\"login\":\"$AUTH_LOGIN\",\"senha\":\"$AUTH_SENHA\",\"tipoUsuario\":\"$AUTH_TIPO\"}"
+```
 
 ## Encerrar ambiente
 
