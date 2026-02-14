@@ -19,9 +19,12 @@ AUTH_SEED_PROF_LOGIN="${AUTH_SEED_PROF_LOGIN:-}"
 AUTH_SEED_PROF_SENHA="${AUTH_SEED_PROF_SENHA:-}"
 AUTH_SEED_PROF_TIPO="${AUTH_SEED_PROF_TIPO:-PROFISSIONAL}"
 
-AUTH_LOGIN="${AUTH_LOGIN:-$AUTH_SEED_PROF_LOGIN}"
-AUTH_SENHA="${AUTH_SENHA:-$AUTH_SEED_PROF_SENHA}"
-AUTH_TIPO="${AUTH_TIPO:-$AUTH_SEED_PROF_TIPO}"
+AUTH_LOGIN_INPUT="${AUTH_LOGIN:-}"
+AUTH_SENHA_INPUT="${AUTH_SENHA:-}"
+AUTH_TIPO_INPUT="${AUTH_TIPO:-}"
+AUTH_LOGIN_SET="${AUTH_LOGIN+x}"
+AUTH_SENHA_SET="${AUTH_SENHA+x}"
+AUTH_TIPO_SET="${AUTH_TIPO+x}"
 PACIENTE_ID="${PACIENTE_ID:-$SEED_PACIENTE_ID_1}"
 
 ts() { date '+%Y-%m-%d %H:%M:%S'; }
@@ -32,13 +35,28 @@ need_cmd() {
   command -v "$1" >/dev/null 2>&1 || fail "Dependencia nao encontrada: $1"
 }
 
+compose_with_env() {
+  JWT_SECRET="$JWT_SECRET" \
+  SEED_PACIENTE_LOGIN_1="$SEED_PACIENTE_LOGIN_1" \
+  SEED_PACIENTE_ID_1="$SEED_PACIENTE_ID_1" \
+  SEED_PACIENTE_LOGIN_2="$SEED_PACIENTE_LOGIN_2" \
+  SEED_PACIENTE_ID_2="$SEED_PACIENTE_ID_2" \
+  AUTH_SEED_PACIENTE_LOGIN="$AUTH_SEED_PACIENTE_LOGIN" \
+  AUTH_SEED_PACIENTE_SENHA="$AUTH_SEED_PACIENTE_SENHA" \
+  AUTH_SEED_PACIENTE_TIPO="$AUTH_SEED_PACIENTE_TIPO" \
+  AUTH_SEED_PROF_LOGIN="$AUTH_SEED_PROF_LOGIN" \
+  AUTH_SEED_PROF_SENHA="$AUTH_SEED_PROF_SENHA" \
+  AUTH_SEED_PROF_TIPO="$AUTH_SEED_PROF_TIPO" \
+  docker compose -f "$COMPOSE_FILE" "$@"
+}
+
 cleanup() {
   if [[ "$KEEP_UP" == "1" ]]; then
     log "KEEP_UP=1 -> mantendo ambiente em execucao."
     return
   fi
   log "Derrubando ambiente Docker Compose..."
-  docker compose -f "$COMPOSE_FILE" down -v >/dev/null 2>&1 || true
+  compose_with_env down -v >/dev/null 2>&1 || true
 }
 trap cleanup EXIT
 
@@ -64,8 +82,19 @@ fi
 if [[ -z "$AUTH_SEED_PROF_SENHA" ]]; then
   AUTH_SEED_PROF_SENHA="$(openssl rand -hex 8)"
 fi
-AUTH_LOGIN="${AUTH_LOGIN:-$AUTH_SEED_PROF_LOGIN}"
-AUTH_SENHA="${AUTH_SENHA:-$AUTH_SEED_PROF_SENHA}"
+
+if [[ -z "${AUTH_LOGIN_SET:-}" && -z "${AUTH_SENHA_SET:-}" && -z "${AUTH_TIPO_SET:-}" ]]; then
+  AUTH_LOGIN="$AUTH_SEED_PROF_LOGIN"
+  AUTH_SENHA="$AUTH_SEED_PROF_SENHA"
+  AUTH_TIPO="$AUTH_SEED_PROF_TIPO"
+else
+  [[ -n "$AUTH_LOGIN_INPUT" ]] || fail "AUTH_LOGIN foi informada parcialmente. Informe AUTH_LOGIN, AUTH_SENHA e AUTH_TIPO juntos."
+  [[ -n "$AUTH_SENHA_INPUT" ]] || fail "AUTH_SENHA foi informada parcialmente. Informe AUTH_LOGIN, AUTH_SENHA e AUTH_TIPO juntos."
+  [[ -n "$AUTH_TIPO_INPUT" ]] || fail "AUTH_TIPO foi informada parcialmente. Informe AUTH_LOGIN, AUTH_SENHA e AUTH_TIPO juntos."
+  AUTH_LOGIN="$AUTH_LOGIN_INPUT"
+  AUTH_SENHA="$AUTH_SENHA_INPUT"
+  AUTH_TIPO="$AUTH_TIPO_INPUT"
+fi
 
 if [[ -z "$JWT_SECRET" ]]; then
   JWT_SECRET="$(openssl rand -base64 48)"
@@ -73,19 +102,11 @@ if [[ -z "$JWT_SECRET" ]]; then
 fi
 
 log "Iniciando validacao completa FarmaSUS v$SCRIPT_VERSION"
+log "Credenciais E2E em uso: AUTH_LOGIN=$AUTH_LOGIN AUTH_TIPO=$AUTH_TIPO"
+log "Limpando stack anterior..."
+compose_with_env down -v >/dev/null 2>&1 || true
 log "Subindo ambiente via Docker Compose..."
-JWT_SECRET="$JWT_SECRET" \
-SEED_PACIENTE_LOGIN_1="$SEED_PACIENTE_LOGIN_1" \
-SEED_PACIENTE_ID_1="$SEED_PACIENTE_ID_1" \
-SEED_PACIENTE_LOGIN_2="$SEED_PACIENTE_LOGIN_2" \
-SEED_PACIENTE_ID_2="$SEED_PACIENTE_ID_2" \
-AUTH_SEED_PACIENTE_LOGIN="$AUTH_SEED_PACIENTE_LOGIN" \
-AUTH_SEED_PACIENTE_SENHA="$AUTH_SEED_PACIENTE_SENHA" \
-AUTH_SEED_PACIENTE_TIPO="$AUTH_SEED_PACIENTE_TIPO" \
-AUTH_SEED_PROF_LOGIN="$AUTH_SEED_PROF_LOGIN" \
-AUTH_SEED_PROF_SENHA="$AUTH_SEED_PROF_SENHA" \
-AUTH_SEED_PROF_TIPO="$AUTH_SEED_PROF_TIPO" \
-docker compose -f "$COMPOSE_FILE" up -d --build
+compose_with_env up -d --build
 
 log "Rodando E2E..."
 AUTH_LOGIN="$AUTH_LOGIN" \
