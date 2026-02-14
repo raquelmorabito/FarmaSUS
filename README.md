@@ -103,6 +103,12 @@ Ainda nao coberto nesta versao:
 - Maven
 
 ## Como executar localmente
+Forma recomendada:
+```bash
+./run_local.sh
+```
+Guia completo: `docs/execucao-local.md`
+
 ### 1) Pre-requisitos
 - Docker + Docker Compose
 - Java 21
